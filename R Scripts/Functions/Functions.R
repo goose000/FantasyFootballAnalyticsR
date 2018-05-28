@@ -37,10 +37,15 @@ nameMerge <- function(name){
 }
 
 #Function for calculating Mean Absolute Scaled Error (MASE)
-calculateMASE <- function(f,y) { # f = vector with forecasts, y = vector with actuals
-  if(length(f)!=length(y)){ stop("Vector length is not equal") }
-  n <- length(f)
-  return(mean(abs((y - f) / ((1/(n-1)) * sum(abs(y[2:n]-y[1:n-1]))))))
+calculateMASE <- function(forecast, actual){
+  mydata <- data.frame(na.omit(cbind(forecast, actual)))
+
+  errors <- mydata$actual - mydata$forecast
+  scalingFactor <- mean(abs(mydata$actual - mean(mydata$forecast)))
+  scaledErrors <- errors/scalingFactor
+  
+  MASE <- mean(abs(scaledErrors))
+  return(MASE)
 }
 
 #Function for calculating the weighted standard deviation for mean/sd rescaling (used in the function below)
@@ -380,18 +385,18 @@ CJ.dt = function(...) {
 }
 
 # Function to calculate the location estimate for the wilcox test
-wilcox.loc <- function(vec){
+wilcox.loc <- function(vec, na.rm = FALSE){
   n <- length(vec)
   
   # If number of observations is less than 2 then we just return mean as location estimate
   if(n <= 2){
-    return(mean(vec, na.rm = TRUE))
+    return(mean(vec, na.rm = na.rm))
   }
   
   # Calculating the paired avagerages
-  pairAvg <- sort(c(vec, combn(vec, 2, function(x)mean(x, na.rm = TRUE))))
+  pairAvg <- sort(c(vec, combn(vec, 2, function(x)mean(x, na.rm = na.rm))))
   
-  return(median(pairAvg, na.rm = TRUE))
+  return(median(pairAvg, na.rm = na.rm))
 }
 
 # Function to calculate DST points from the ptsAllowed brackets
